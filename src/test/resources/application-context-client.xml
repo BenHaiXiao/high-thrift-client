@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+    <bean id="poolConfig" class="org.apache.commons.pool2.impl.GenericKeyedObjectPoolConfig">
+        <property name="maxTotal" value="${maxTotal}"/>
+        <property name="maxTotalPerKey" value="${maxTotalPerKey}"/>
+        <property name="minIdlePerKey" value="${minIdlePerKey}"/>
+        <property name="maxIdlePerKey" value="${maxIdlePerKey}"/>
+        <property name="maxWaitMillis" value="${maxWaitMillis}"/>
+        <property name="testOnBorrow" value="${testOnBorrow}"/>
+        <property name="testOnReturn" value="${testOnReturn}"/>
+    </bean>
+
+    <!-- client validator -->
+    <bean id="thriftClientValidator" class="com.github.xiaobenhai.thrift.client.test.sample.ThriftConnectionValidator"/>
+    <!-- client config -->
+    <bean id="thriftClientConfigure" class="com.github.xiaobenhai.thrift.client.config.ThriftClientConfigure">
+        <property name="servers" value="${servers}"/>
+        <property name="backupServers" value="${backup.servers}"/>
+        <!--超时时间，默认3000毫秒-->
+        <property name="timeout" value="3000"/>
+        <property name="poolConfig" ref="poolConfig"/>
+        <property name="validator" ref="thriftClientValidator"/>
+    </bean>
+
+    <!-- client wrapper -->
+    <bean id="commonThriftClientWrapper" class="com.github.xiaobenhai.thrift.client.config.CommonThriftWrapper" destroy-method="close">
+        <constructor-arg name="config" ref="thriftClientConfigure"/>
+    </bean>
+
+    <!-- client -->
+    <bean id="thriftSdk" class="com.github.xiaobenhai.thrift.client.test.thrift.ThriftSdk">
+        <constructor-arg name="commonThriftWrapper" ref="commonThriftClientWrapper" />
+    </bean>
+
+    <context:property-placeholder location="classpath:/application-context-client.properties"/><!-- 加载配置文件 -->
+
+</beans>
